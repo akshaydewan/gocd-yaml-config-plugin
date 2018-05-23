@@ -15,7 +15,7 @@ public class TaskTransformTest {
     private final TaskTransform parser;
 
     public TaskTransformTest() {
-        parser = new TaskTransform();
+        parser = new TaskTransform(new ConfigurationTransform());
     }
 
     @Test

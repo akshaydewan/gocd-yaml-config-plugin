@@ -15,7 +15,8 @@ public class RootTransform {
         EnvironmentVariablesTransform environmentVarsTransform = new EnvironmentVariablesTransform();
         MaterialTransform material = new MaterialTransform();
         ParameterTransform parameterTransform = new ParameterTransform();
-        JobTransform job = new JobTransform(environmentVarsTransform, new TaskTransform());
+        ConfigurationTransform configurationTransform = new ConfigurationTransform();
+        JobTransform job = new JobTransform(environmentVarsTransform, new TaskTransform(configurationTransform), configurationTransform);
         StageTransform stage = new StageTransform(environmentVarsTransform, job);
         this.pipelineTransform = new PipelineTransform(material, stage, environmentVarsTransform, parameterTransform);
         this.environmentsTransform = new EnvironmentsTransform(environmentVarsTransform);

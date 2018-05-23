@@ -1,0 +1,13 @@
+{
+  "name": "test",
+  "artifacts": [
+    {
+      "type": "external",
+      "id": "example_image",
+      "store_id": "dockerhub"
+    }
+  ],
+  "tasks": [
+    null
+  ]
+}

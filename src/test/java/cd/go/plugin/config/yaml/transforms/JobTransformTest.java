@@ -15,14 +15,16 @@ import static org.mockito.Mockito.mock;
 
 public class JobTransformTest {
     private EnvironmentVariablesTransform environmentTransform;
+    private ConfigurationTransform configurationTransform;
     private TaskTransform taskTransform;
     private JobTransform parser;
 
     @Before
     public void SetUp() {
         environmentTransform = new EnvironmentVariablesTransform();
+        configurationTransform = new ConfigurationTransform();
         taskTransform = mock(TaskTransform.class);
-        parser = new JobTransform(environmentTransform, taskTransform);
+        parser = new JobTransform(environmentTransform, taskTransform, configurationTransform);
     }
 
     @Test
@@ -43,6 +45,16 @@ public class JobTransformTest {
     }
 
     @Test
+    public void shouldTransformExternalArtifactJob() throws IOException {
+        testTransform("external_artifact");
+    }
+
+    @Test
+    public void shouldTransformExternalArtifactWithoutOptions() throws IOException {
+        testTransform("external_artifact_without_options");
+    }
+
+    @Test
     public void shouldTransformElasticProfileJob() throws IOException {
         testTransform("elastic_profile");
     }
@@ -50,8 +62,8 @@ public class JobTransformTest {
     @Test
     public void shouldTransformJobWithListOfListsTasks() throws IOException {
         environmentTransform = new EnvironmentVariablesTransform();
-        taskTransform = new TaskTransform();
-        parser = new JobTransform(environmentTransform, taskTransform);
+        taskTransform = new TaskTransform(configurationTransform);
+        parser = new JobTransform(environmentTransform, taskTransform, configurationTransform);
 
         JsonObject job = testTransform("list_of_lists_tasks");
     }

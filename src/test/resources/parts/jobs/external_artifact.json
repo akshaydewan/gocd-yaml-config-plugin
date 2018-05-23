@@ -1,0 +1,27 @@
+{
+  "name": "test",
+  "artifacts": [
+    {
+      "type": "external",
+      "id": "example_image",
+      "store_id": "dockerhub",
+      "configuration": [
+        {
+          "key": "Image",
+          "value": "gocddemo/guestbook"
+        },
+        {
+          "key": "Tag",
+          "value": "v5"
+        },
+        {
+          "key": "Secret",
+          "encrypted_value": "$%^&asd@"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    null
+  ]
+}

@@ -1,0 +1,12 @@
+test:
+  artifacts:
+    - external:
+        id: example_image
+        store_id: dockerhub
+        options:
+          Image: gocddemo/guestbook
+          Tag: v5
+        secure_options:
+          Secret: "$%^&asd@"
+  tasks:
+    - null

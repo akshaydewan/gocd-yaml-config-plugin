@@ -32,6 +32,11 @@ public class JobTransform {
     private static final String JSON_JOB_ARTIFACTS_FIELD = "artifacts";
     private static final String JSON_JOB_ARTIFACT_SOURCE_FIELD = "source";
     private static final String YAML_JOB_ARTIFACT_SOURCE_FIELD = "source";
+    private static final String JSON_JOB_ARTIFACT_ID_FIELD = "id";
+    private static final String YAML_JOB_ARTIFACT_ID_FIELD = "id";
+    private static final String JSON_JOB_ARTIFACT_STORE_ID_FIELD = "store_id";
+    private static final String YAML_JOB_ARTIFACT_STORE_ID_FIELD = "store_id";
+    private static final String JSON_JOB_ARTIFACT_CONFIGURATION_FIELD = "configuration";
     private static final String JSON_JOB_ARTIFACT_DEST_FIELD = "destination";
     private static final String YAML_JOB_ARTIFACT_DEST_FIELD = "destination";
     private static final String YAML_JOB_PROPS_FIELD = "properties";
@@ -42,12 +47,14 @@ public class JobTransform {
     private static final String JSON_JOB_PROP_XPATH_FIELD = "xpath";
     private static final String YAML_JOB_PROP_XPATH_FIELD = "xpath";
 
+    private ConfigurationTransform configurationTransform;
     private EnvironmentVariablesTransform environmentTransform;
     private TaskTransform taskTransform;
 
-    public JobTransform(EnvironmentVariablesTransform environmentTransform, TaskTransform taskTransform) {
+    public JobTransform(EnvironmentVariablesTransform environmentTransform, TaskTransform taskTransform, ConfigurationTransform configurationTransform) {
         this.environmentTransform = environmentTransform;
         this.taskTransform = taskTransform;
+        this.configurationTransform = configurationTransform;
     }
 
     public JsonObject transform(Object yamlObject) {
@@ -117,20 +124,37 @@ public class JobTransform {
             Map<String, Object> artifactMap = (Map<String, Object>) artifactObj;
             for (Map.Entry<String, Object> artMap : artifactMap.entrySet()) {
                 JsonObject artifactJson = new JsonObject();
-                if ("build".equalsIgnoreCase(artMap.getKey()))
+                if ("build".equalsIgnoreCase(artMap.getKey())) {
                     artifactJson.addProperty("type", "build");
-                else if ("test".equalsIgnoreCase(artMap.getKey()))
+                    addBuiltinArtifact(artifactJson, artMap);
+                } else if ("test".equalsIgnoreCase(artMap.getKey())) {
                     artifactJson.addProperty("type", "test");
-                else
+                    addBuiltinArtifact(artifactJson, artMap);
+                } else if ("external".equalsIgnoreCase(artMap.getKey())) {
+                    artifactJson.addProperty("type", "external");
+                    Map<String, Object> artMapValue = (Map<String, Object>) artMap.getValue();
+                    addRequiredString(artifactJson, artMapValue, JSON_JOB_ARTIFACT_ID_FIELD, YAML_JOB_ARTIFACT_ID_FIELD);
+                    addRequiredString(artifactJson, artMapValue, JSON_JOB_ARTIFACT_STORE_ID_FIELD, YAML_JOB_ARTIFACT_STORE_ID_FIELD);
+                    addConfiguration(artifactJson, artMapValue);
+                } else
                     throw new YamlConfigException("expected build: or test: in artifact, got " + artMap.getKey());
-                Map<String, Object> artMapValue = (Map<String, Object>) artMap.getValue();
-                addRequiredString(artifactJson, artMapValue, JSON_JOB_ARTIFACT_SOURCE_FIELD, YAML_JOB_ARTIFACT_SOURCE_FIELD);
-                addOptionalString(artifactJson, artMapValue, JSON_JOB_ARTIFACT_DEST_FIELD, YAML_JOB_ARTIFACT_DEST_FIELD);
                 artifactArrayJson.add(artifactJson);
                 break;// we read first hash and exit
             }
         }
         jobJson.add(JSON_JOB_ARTIFACTS_FIELD, artifactArrayJson);
+    }
+
+    private void addConfiguration(JsonObject artifactJson, Map<String, Object> artMap) {
+        JsonArray configuration = configurationTransform.transform(artMap);
+        if (configuration.size() > 0)
+            artifactJson.add(JSON_JOB_ARTIFACT_CONFIGURATION_FIELD, configuration);
+    }
+
+    private void addBuiltinArtifact(JsonObject artifactJson, Map.Entry<String, Object> artMap) {
+        Map<String, Object> artMapValue = (Map<String, Object>) artMap.getValue();
+        addRequiredString(artifactJson, artMapValue, JSON_JOB_ARTIFACT_SOURCE_FIELD, YAML_JOB_ARTIFACT_SOURCE_FIELD);
+        addOptionalString(artifactJson, artMapValue, JSON_JOB_ARTIFACT_DEST_FIELD, YAML_JOB_ARTIFACT_DEST_FIELD);
     }
 
     private void addTabs(JsonObject jobJson, Map<String, Object> jobMap) {
@@ -182,8 +206,7 @@ public class JobTransform {
             if (maybeTask instanceof List) {
                 List<Object> taskNestedList = (List<Object>) maybeTask;
                 addTasks(taskNestedList, tasksJson);
-            }
-            else {
+            } else {
                 JsonObject task = taskTransform.transform(maybeTask);
                 tasksJson.add(task);
             }

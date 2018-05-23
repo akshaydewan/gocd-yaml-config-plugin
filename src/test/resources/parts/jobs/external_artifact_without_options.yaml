@@ -1,0 +1,7 @@
+test:
+  artifacts:
+    - external:
+        id: example_image
+        store_id: dockerhub
+  tasks:
+    - null

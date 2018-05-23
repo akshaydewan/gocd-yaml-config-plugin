@@ -37,7 +37,7 @@ public class StageTransformTest {
 
     @Test
     public void shouldTransformSingleJobStage() throws IOException {
-        parser = new StageTransform(environmentTransform, new JobTransform(environmentTransform, mock(TaskTransform.class)));
+        parser = new StageTransform(environmentTransform, new JobTransform(environmentTransform, mock(TaskTransform.class), mock(ConfigurationTransform.class)));
         testTransform("stage-job");
     }
 
